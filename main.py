@@ -11,11 +11,20 @@ app = FastAPI(title="CourseGen API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (development only)
+    allow_origins=[
+        "https://course-gen-five.vercel.app",  # your frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+
+@app.get("/")
+async def root():
+    return {"message": "CourseGen API is running", "status": "healthy"}
+
 
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(user_router, prefix="/users", tags=["Users"])
