@@ -87,14 +87,13 @@ async def get_user_by_username(
 
 async def get_users_by_username_pattern(name: str, database: AsyncIOMotorDatabase):
     collection = database.get_collection("users")
-    cursor = await collection.find(
-        {"username": {"$regex": name, "$options": "i"}}
-    ).to_list(length=None)
-
-    return [UserResponse(**user) for user in cursor]
+    cursor = collection.find({"username": {"$regex": name, "$options": "i"}})
+    users = await cursor.to_list(length=100)
+    return [UserResponse(**user) for user in users]
 
 
 async def get_all_users(database: AsyncIOMotorDatabase):
     collection = database.get_collection("users")
-    cursor = await collection.find({}).to_list(length=None)
-    return [UserResponse(**user) for user in cursor]
+    cursor = collection.find({})
+    users = await cursor.to_list(length=100)
+    return [UserResponse(**user) for user in users]
