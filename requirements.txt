@@ -28,5 +28,8 @@ groq==0.4.2
 # HTTP Clients
 httpx==0.26.0
 
+# SSL/TLS Certificate Handling
+certifi>=2023.7.22
+
 # Utilities
 python-dateutil==2.8.2
