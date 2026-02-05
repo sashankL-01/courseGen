@@ -1,16 +1,11 @@
-# Dependencies
-node_modules/
+# Dependencies (git only - Vercel installs fresh)
+# node_modules/
 
 # Testing
 coverage/
 .nyc_output/
 
-# Build
-.cache/
-.vite/
-
-# Environment
-.env
+# Environment (local only)
 .env.local
 .env.*.local
 
@@ -22,15 +17,10 @@ coverage/
 
 # Logs
 *.log
-logs/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Documentation (keep only README)
-*.md
-!README.md
 
 # Development
 *.bak
