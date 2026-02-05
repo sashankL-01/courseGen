@@ -1,37 +1,29 @@
 """
 Database connection using Motor (async MongoDB driver).
-- Using AsyncIOMotorClient (NOT direct MongoClient)
-- All database operations are async/await
-- Compatible with FastAPI's async nature
+Pure async implementation - no PyMongo threadpool execution.
 """
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-from typing import Generator
-from config import MONGO_URL, DB_NAME
-import logging
+import os
 
-logger = logging.getLogger(__name__)
+# Get MongoDB URI from environment (works both locally and on Render)
+MONGO_URI = os.environ.get("MONGO_URL") or os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("DB_NAME", "coursegen")
 
-# Initialize async Motor client with production-ready configuration
-# Motor automatically handles SSL/TLS for mongodb+srv:// URIs
-client_options = {
-    "serverSelectionTimeoutMS": 10000,
-    "connectTimeoutMS": 20000,
-    "retryWrites": True,
-    "w": "majority",
-}
+# Create async Motor client - minimal configuration
+# Motor handles SSL/TLS automatically for mongodb+srv:// URIs
+client = AsyncIOMotorClient(
+    MONGO_URI,
+    serverSelectionTimeoutMS=10000,
+)
 
-logger.info(f"Connecting to MongoDB: {DB_NAME}")
-logger.info(f"Using connection URI: {MONGO_URL[:20]}...")
-client = AsyncIOMotorClient(MONGO_URL, **client_options)
 db = client[DB_NAME]
 
 
 async def get_database() -> AsyncIOMotorDatabase:
     """
     Dependency function for FastAPI routes.
-    Returns the shared async Motor database instance.
-    All collections should be accessed via: database.get_collection("name")
+    Returns the Motor database instance (fully async).
+    No PyMongo, no threadpool, pure async/await.
     """
     return db
-

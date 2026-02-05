@@ -47,20 +47,21 @@ async def health_db():
     """Check database connection health"""
     try:
         from db.connect import client, db
-        from config import MONGO_URL, DB_NAME
+        import os
 
         # Try to ping the database
         await client.admin.command("ping")
 
         # Get connection info (without exposing password)
+        mongo_uri = os.environ.get("MONGO_URL") or os.environ.get("MONGODB_URI", "local")
         mongo_host = (
-            MONGO_URL.split("@")[1].split("/")[0] if "@" in MONGO_URL else "local"
+            mongo_uri.split("@")[1].split("/")[0] if "@" in mongo_uri else "local"
         )
-        connection_type = "mongodb+srv" if "mongodb+srv://" in MONGO_URL else "mongodb"
+        connection_type = "mongodb+srv" if "mongodb+srv://" in mongo_uri else "mongodb"
 
         return {
             "status": "healthy",
-            "database": DB_NAME,
+            "database": db.name,
             "host": mongo_host,
             "connection_type": connection_type,
             "message": "Database connection successful",

@@ -17,24 +17,24 @@ class MotorVerifier(ast.NodeVisitor):
 
     def visit_Import(self, node):
         for alias in node.names:
-            if 'pymongo' in alias.name and 'motor' not in alias.name:
+            if "pymongo" in alias.name and "motor" not in alias.name:
                 self.uses_pymongo_directly = True
                 self.issues.append(
                     f"Line {node.lineno}: Direct pymongo import detected: {alias.name}"
                 )
-            if 'motor' in alias.name:
+            if "motor" in alias.name:
                 self.uses_motor = True
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
-        if node.module and 'pymongo' in node.module and 'motor' not in node.module:
+        if node.module and "pymongo" in node.module and "motor" not in node.module:
             # Allow importing from bson (part of pymongo but used correctly)
-            if 'bson' not in node.module:
+            if "bson" not in node.module:
                 self.uses_pymongo_directly = True
                 self.issues.append(
                     f"Line {node.lineno}: Direct pymongo import detected: from {node.module}"
                 )
-        if node.module and 'motor' in node.module:
+        if node.module and "motor" in node.module:
             self.uses_motor = True
         self.generic_visit(node)
 
@@ -44,7 +44,10 @@ class MotorVerifier(ast.NodeVisitor):
             if isinstance(node.value.value, ast.Call):
                 if isinstance(node.value.value.func, ast.Attribute):
                     # Check for: await collection.find(...).to_list(...)
-                    if node.value.value.func.attr == 'find' and node.value.attr == 'to_list':
+                    if (
+                        node.value.value.func.attr == "find"
+                        and node.value.attr == "to_list"
+                    ):
                         self.issues.append(
                             f"Line {node.lineno}: Incorrect Motor usage - should be: cursor = collection.find(...); await cursor.to_list(...)"
                         )
@@ -54,13 +57,13 @@ class MotorVerifier(ast.NodeVisitor):
 def check_file(filepath):
     """Check a Python file for Motor usage issues."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         tree = ast.parse(content, filename=str(filepath))
         verifier = MotorVerifier(str(filepath))
         verifier.visit(tree)
-        
+
         return verifier
     except Exception as e:
         print(f"Error checking {filepath}: {e}")
@@ -74,8 +77,8 @@ def main():
     print()
 
     # Directories to check
-    directories = ['services', 'api', 'db', 'auth']
-    
+    directories = ["services", "api", "db", "auth"]
+
     all_issues = []
     motor_files = []
     pymongo_files = []
@@ -85,8 +88,8 @@ def main():
         if not dir_path.exists():
             continue
 
-        for py_file in dir_path.glob('**/*.py'):
-            if py_file.name.startswith('__'):
+        for py_file in dir_path.glob("**/*.py"):
+            if py_file.name.startswith("__"):
                 continue
 
             verifier = check_file(py_file)
@@ -96,7 +99,9 @@ def main():
                 if verifier.uses_pymongo_directly:
                     pymongo_files.append(str(py_file))
                 if verifier.issues:
-                    all_issues.extend([f"{py_file}: {issue}" for issue in verifier.issues])
+                    all_issues.extend(
+                        [f"{py_file}: {issue}" for issue in verifier.issues]
+                    )
 
     # Print results
     print(f"✅ Files using Motor (async): {len(motor_files)}")
