@@ -1,4 +1,6 @@
-const baseUrl = import.meta.env.VITE_API_URL ?? ''
+const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+console.log('🌐 API Base URL:', baseUrl) // Debug: Check what URL is being used
 
 // this is better than Axios interceptors because fetch doesn't have interceptors
 
@@ -18,7 +20,10 @@ const request = async (path, options = {}) => {
             typeof body === 'string' ? body : JSON.stringify(body);
     }
 
-    const response = await fetch(`${baseUrl}${path}`, fetchOptions);
+    const fullUrl = `${baseUrl}${path}`
+    console.log(`📡 ${options.method || 'GET'} ${fullUrl}`) // Debug: Log each request
+
+    const response = await fetch(fullUrl, fetchOptions);
 
     if (!response.ok) {
         let errorBody = null;
