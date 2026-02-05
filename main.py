@@ -42,6 +42,37 @@ async def root():
     return {"message": "CourseGen API is running", "status": "healthy"}
 
 
+@app.get("/health/db")
+async def health_db():
+    """Check database connection health"""
+    try:
+        from db.connect import client, db
+        from config import MONGO_URL, DB_NAME
+        
+        # Try to ping the database
+        await client.admin.command('ping')
+        
+        # Get connection info (without exposing password)
+        mongo_host = MONGO_URL.split('@')[1].split('/')[0] if '@' in MONGO_URL else 'local'
+        connection_type = "mongodb+srv" if "mongodb+srv://" in MONGO_URL else "mongodb"
+        
+        return {
+            "status": "healthy",
+            "database": DB_NAME,
+            "host": mongo_host,
+            "connection_type": connection_type,
+            "message": "Database connection successful"
+        }
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}", exc_info=True)
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "type": type(e).__name__,
+            "message": "Database connection failed - check MONGO_URL format (must use mongodb+srv:// for Atlas)"
+        }
+
+
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(user_router, prefix="/users", tags=["Users"])
 app.include_router(course_router, prefix="/course", tags=["Courses"])
